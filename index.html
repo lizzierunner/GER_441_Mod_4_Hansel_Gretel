@@ -3,368 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Presentation App</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <title>Hansel & Gretel: Video Analysis</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Cinzel+Decorative:wght@400;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Nosifer&display=swap" rel="stylesheet">
     
     <style>
-        body {
-            font-family: 'EB Garamond', serif;
-        }
-        .font-nosifer {
-            font-family: 'Nosifer', cursive;
-        }
-        .font-cinzel {
-            font-family: 'Cinzel Decorative', cursive;
-        }
-        .font-garamond {
-            font-family: 'EB Garamond', serif;
-        }
+        body { font-family: 'EB Garamond', serif; }
+        .font-nosifer { font-family: 'Nosifer', cursive; }
+        .font-cinzel { font-family: 'Cinzel Decorative', cursive; }
+
+        /* Transitions */
+        .fade-enter { opacity: 0; transform: scale(0.95); }
+        .fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
         
-        /* Floating embers animation */
+        /* Embers Animation */
         @keyframes floatUp {
-            0% {
-                transform: translateY(0) translateX(0);
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(-100vh) translateX(var(--drift, 0px));
-                opacity: 0;
-            }
+            0% { transform: translateY(110vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(var(--drift)); opacity: 0; }
         }
-        
         .ember {
-            position: fixed;
-            bottom: 0;
-            width: 8px;
-            height: 8px;
-            background: radial-gradient(circle, #ff6b35, #ff4500);
-            border-radius: 50%;
-            pointer-events: none;
-            box-shadow: 0 0 10px #ff4500, 0 0 20px #ff6b35;
-            animation: floatUp linear forwards;
-            z-index: 10;
-        }
-        
-        /* Background transitions */
-        #background {
-            transition: opacity 1s ease-in-out, background-image 1s ease-in-out;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        
-        #background::after {
-            content: '';
             position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1;
+            border-radius: 50%;
+            background: #f97316;
+            filter: blur(1px);
+            box-shadow: 0 0 10px 2px rgba(255, 69, 0, 0.8);
+            animation-name: floatUp;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
         }
+
+        /* Ending Text Pulse/Glitch */
+        @keyframes textGlitch {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.02); }
+        }
+        .animate-text-glitch { animation: textGlitch 3s infinite ease-in-out; }
+
+        @keyframes bleed {
+            0%, 100% { opacity: 0.3; transform: translateY(0); }
+            50% { opacity: 0.6; transform: translateY(5px); }
+        }
+        .animate-bleed { animation: bleed 4s infinite ease-in-out; }
+
+        @keyframes pulse-red {
+            0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+        }
+        .animate-pulse-red { animation: pulse-red 4s infinite ease-in-out; }
     </style>
 </head>
-<body class="bg-black text-stone-200 min-h-screen">
+<body class="bg-black text-stone-200 overflow-hidden h-screen w-screen relative selection:bg-red-900 selection:text-white">
+
+    <!-- 1. Background Image -->
+    <div id="bg-layer" class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000 ease-in-out opacity-40 grayscale-[30%] contrast-125 scale-105"></div>
+
+    <!-- 2. Overlay Texture (Parchment) -->
+    <div class="absolute inset-0 z-0 opacity-20 mix-blend-overlay pointer-events-none bg-cover" style="background-image: url('https://images.unsplash.com/photo-1706271952285-01b5e3fc2d78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')"></div>
+
+    <!-- 3. Vignette -->
+    <div class="absolute inset-0 z-10 bg-gradient-to-b from-black/80 via-transparent to-black/90 pointer-events-none"></div>
+    <div class="absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] pointer-events-none"></div>
+
+    <!-- 4. Embers (Ending Only) -->
+    <div id="embers-container" class="absolute inset-0 z-0 overflow-hidden pointer-events-none"></div>
+
+    <!-- 5. Audio Elements -->
+    <audio id="ambient-audio" loop>
+        <!-- Dark ambient forest wind sound -->
+        <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_4c003f1e54.mp3" type="audio/mpeg">
+    </audio>
     
-    <!-- Background Layer -->
-    <div id="background" class="fixed inset-0 z-0"></div>
-    
-    <!-- Main App Container -->
-    <div id="app" class="container mx-auto px-4 py-8 max-w-7xl relative z-10">
-        <!-- Your content goes here -->
-    </div>
+    <audio id="heartbeat-audio" loop>
+        <!-- Low thrumming heartbeat sound -->
+        <source src="https://cdn.pixabay.com/audio/2022/03/22/audio_f6a737007d.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 6. Main Content -->
+    <main class="relative z-20 h-full flex flex-col items-center justify-between p-6 md:p-12 max-w-6xl mx-auto">
+        
+        <!-- Slide Container -->
+        <div id="slide-container" class="flex-grow flex items-center justify-center w-full transition-opacity duration-300">
+            <!-- Content Injected via JS -->
+        </div>
+
+        <!-- Controls -->
+        <div id="controls-container" class="flex items-center gap-8 mt-12 transition-opacity duration-500">
+            <!-- Prev Button -->
+            <button id="btn-prev" class="group flex items-center justify-center w-16 h-16 rounded-full border-2 border-stone-600 bg-black/50 backdrop-blur-sm text-stone-400 transition-all duration-300 hover:border-red-800 hover:text-red-500 hover:shadow-[0_0_20px_rgba(185,28,28,0.3)] disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-stone-600 disabled:hover:text-stone-400">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+
+            <!-- Progress -->
+            <div class="flex flex-col items-center gap-1 font-serif text-stone-500 tracking-widest text-sm">
+                <span class="flex items-center gap-2">
+                    <svg id="skull-left" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"/></svg>
+                    <span id="slide-label">INTRO</span>
+                    <svg id="skull-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"/></svg>
+                </span>
+                <div class="h-0.5 w-24 bg-stone-800 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-red-900 w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Next Button -->
+            <button id="btn-next" class="group flex items-center justify-center w-16 h-16 rounded-full border-2 border-stone-600 bg-black/50 backdrop-blur-sm text-stone-400 transition-all duration-300 hover:border-red-800 hover:text-red-500 hover:shadow-[0_0_20px_rgba(185,28,28,0.3)] disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-stone-600 disabled:hover:text-stone-400">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+        </div>
+    </main>
 
     <script>
-        // State management
-        let currentIndex = 0;
-        let emberInterval = null;
-
-        // Questions array with academic horror themes
+        // --- DATA ---
         const questions = [
-            {
-                id: 1,
-                title: "Moral Pedagogy",
-                text: "How does the tale of Hansel and Gretel function as a cautionary narrative about obedience and the consequences of childhood transgression?",
-                answer: "The tale operates within a framework of moral pedagogy typical of 19th-century German folklore, where children's disobedience—eating from the witch's house despite obvious danger—serves as a literalization of maternal warnings. The gingerbread house functions as a metaphor for forbidden temptation, while the witch embodies the punitive consequences of succumbing to desire. However, the tale complicates simple moral readings through its portrayal of parental abandonment, suggesting that children's survival requires transgressive acts. The siblings' ultimate triumph through cunning and violence (pushing the witch into the oven) reflects a darker pedagogical message: that traditional morality must be suspended in extremis, and that children must learn to become perpetrators of violence to survive adult treachery."
-            },
-            {
-                id: 2,
-                title: "Maternal Monstrosity",
-                text: "Analyze the symbolic relationship between the stepmother and the witch as doubled figures of maternal threat in the narrative structure.",
-                answer: "The stepmother and witch function as narrative doubles, representing fragmented aspects of the threatening maternal figure. Both seek to eliminate the children—the stepmother through abandonment, the witch through consumption. This doubling reflects the tale's anxiety about maternal nurture perverted into its opposite: the mother who feeds becomes the mother who starves, then transforms into the witch who literally consumes children. The witch's death coincides narratively with the stepmother's offstage demise, suggesting they are psychologically identical. The gingerbread house itself operates as a false maternal object, promising sustenance while concealing cannibalistic intent. This splitting of the maternal figure into 'good' (absent biological mother) and 'bad' (stepmother/witch) reflects primitive psychological defenses against ambivalence, allowing the tale to express both desire for and terror of maternal power."
-            },
-            {
-                id: 3,
-                title: "Spatial Gothic",
-                text: "How does the forest function as a liminal Gothic space that transforms the children's relationship to civilization and domesticity?",
-                answer: "The forest operates as a classic Gothic heterotopia—a space outside normal social order where conventional rules are suspended. The progressive journey deeper into the forest marks a movement away from failed patriarchal protection (the father) toward a realm of feminine excess and horror (the witch). Unlike traditional Gothic castles, the forest's threat lies in its apparent naturalness, which conceals supernatural danger. The trail of breadcrumbs represents a failed attempt to maintain connection to civilization through rational planning, but nature (birds) conspires against this logic. The gingerbread house epitomizes the forest's deceptive quality—domesticity rendered uncanny through its edible materiality. The children's return journey, weighted with jewels, transforms the forest from a space of abandonment to one of acquisition, suggesting that confrontation with Gothic horror yields material benefit, but only through violence and cunning that permanently alters the children's innocence."
-            },
-            {
-                id: 4,
-                title: "Cannibalistic Economics",
-                text: "Examine the tale's treatment of consumption, scarcity, and the body as economic resource during periods of famine.",
-                answer: "The tale explicitly frames its horror within economic terms: famine drives the initial abandonment, positioning children as consumable resources to be eliminated when food is scarce. This establishes a cannibalistic economy where bodies become commodities. The witch's fattening of Hansel inverts normal domestic economy—she expends resources (food) to create a consumable product (child's flesh), mirroring livestock husbandry. The siblings' theft of the witch's jewels represents capital accumulation through violence, transforming them from resources to be consumed into economic actors. The tale thus expresses anxiety about capitalist exchange during scarcity, where human life becomes calculable against material resources. The father's welcome of the children's return, notably after the stepmother's death and arrival of wealth, suggests that familial bonds are themselves contingent on economic utility, rendering all relationships potentially cannibalistic."
-            },
-            {
-                id: 5,
-                title: "The Abject and Transgression",
-                text: "Using Julia Kristeva's theory of abjection, analyze how the tale deploys bodily boundaries, consumption, and the horror of being eaten.",
-                answer: "The tale centers on violations of bodily integrity through consumption, aligning with Kristeva's concept of the abject—that which disturbs identity and order by threatening the boundary between self and other. The witch's cannibalism represents the ultimate abjection: the body reduced to meat, self consumed by other. The gingerbread house materializes this horror by making architecture edible, collapsing boundaries between inside/outside, consumer/consumed. The children's eating of the house initiates their vulnerability to being eaten, establishing a terrifying reciprocity. Gretel's act of pushing the witch into the oven reverses the threat, forcing the consumer into the position of the consumed, but this requires Gretel herself to occupy the position of the abject monster. The tale's resolution—return to the father with wealth—attempts to restore order, but the children's necessary embrace of violence and cunning suggests permanent contamination by the abject, an irreversible loss of innocence through proximity to the monstrous maternal body."
-            }
+            { id: 1, title: "Moral Pedagogy", text: "How does the story use horror to teach moral lessons?", answer: "The story utilizes the threat of being eaten to reinforce the dangers of gluttony and disobedience." },
+            { id: 2, title: "Social Fears", text: "How does the witch reflect social fears?", answer: "The witch represents the fear of the 'other' and the elderly woman as a threat to the nuclear family." },
+            { id: 3, title: "Family Dynamics", text: "What challenges to idealized family images are present?", answer: "The stepmother's cruelty and the father's passivity subvert the ideal of the protective parental unit." },
+            { id: 4, title: "Genre Connections", text: "What are the connections between fairy tales and horror?", answer: "Both genres deal with primal fears, transformation, and the grotesque, often serving as cautionary tales." },
+            { id: 5, title: "Gender Horror", text: "How do modern retellings focus on gender horror?", answer: "Modern versions often emphasize Gretel's agency and the gendered nature of the violence she faces." }
         ];
 
-        // Update background based on current slide
-        function updateBackground() {
-            const background = document.getElementById('background');
-            
+        // --- STATE ---
+        let currentIndex = 0; // 0=Intro, 1-5=Questions, 6=Ending
+        const bgForest = "url('https://images.unsplash.com/photo-1770105328610-e138ba4597cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')";
+        const bgEnding = "url('https://images.unsplash.com/photo-1677104165819-2e5ab9a0821f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')";
+        let audioInitialized = false;
+
+        // --- DOM ELEMENTS ---
+        const container = document.getElementById('slide-container');
+        const bgLayer = document.getElementById('bg-layer');
+        const embersContainer = document.getElementById('embers-container');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const slideLabel = document.getElementById('slide-label');
+        const progressBar = document.getElementById('progress-bar');
+        const skullLeft = document.getElementById('skull-left');
+        const skullRight = document.getElementById('skull-right');
+        const ambientAudio = document.getElementById('ambient-audio');
+        const heartbeatAudio = document.getElementById('heartbeat-audio');
+
+        // --- RENDER FUNCTION ---
+        function render() {
+            // 1. Update Background
+            bgLayer.style.backgroundImage = currentIndex === 6 ? bgEnding : bgForest;
+
+            // 2. Manage Embers
             if (currentIndex === 6) {
-                // Ending slide - scary closing book
-                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=1920&q=80')";
+                if (embersContainer.childElementCount === 0) startEmbers();
             } else {
-                // All other slides - dark forest
-                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80')";
+                embersContainer.innerHTML = '';
             }
+
+            // 3. Update Audio
+            updateAudio();
+
+            // 4. Generate HTML
+            let html = '';
+            
+            if (currentIndex === 0) {
+                // INTRO
+                html = `
+                <div class="text-center fade-enter fade-enter-active">
+                    <h1 class="font-nosifer text-5xl md:text-8xl text-red-700 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] tracking-wider mb-4">HANSEL<br/>&<br/>GRETEL</h1>
+                    <div class="h-1 bg-gradient-to-r from-transparent via-red-900 to-transparent w-full max-w-md mx-auto mb-8 transition-all duration-1000" style="width: 100%"></div>
+                    <h2 class="font-cinzel text-xl md:text-3xl text-stone-300 tracking-widest mb-8">Video Analysis Questions (Module 4)</h2>
+                    <p class="font-serif text-stone-500 italic max-w-lg mx-auto mb-4">"They saw that the little house was built entirely of bread and roofed with cakes..."</p>
+                    <p class="font-serif text-stone-600 text-sm mt-6">🔊 Click anywhere to enable atmospheric audio</p>
+                </div>`;
+            } else if (currentIndex === 6) {
+                // ENDING
+                html = `
+                <div class="relative w-full flex flex-col items-center justify-center text-center fade-enter fade-enter-active">
+                    <!-- Red Glow Pulse -->
+                    <div class="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-red-900/30 blur-[100px] rounded-full pointer-events-none animate-pulse-red" style="z-index: -1;"></div>
+
+                    <!-- Main Text -->
+                    <div class="relative mb-12">
+                        <h1 class="relative z-10 font-nosifer text-7xl md:text-9xl text-transparent bg-clip-text bg-gradient-to-b from-stone-200 to-stone-500 drop-shadow-[0_0_25px_rgba(185,28,28,0.8)] tracking-widest leading-none animate-text-glitch">
+                            FINIS
+                        </h1>
+                        <!-- Bleeding Effect -->
+                        <h1 class="absolute inset-0 font-nosifer text-7xl md:text-9xl text-red-900/40 blur-sm pointer-events-none tracking-widest leading-none animate-bleed" aria-hidden="true">
+                            FINIS
+                        </h1>
+                    </div>
+
+                    <!-- Quote Box -->
+                    <div class="bg-black/40 p-8 rounded-xl backdrop-blur-sm border border-red-900/20 max-w-2xl mx-auto space-y-6">
+                        <p class="font-cinzel text-xl md:text-3xl text-red-500 tracking-widest uppercase animate-pulse">The End... Or Is It?</p>
+                        <div class="h-px w-32 bg-gradient-to-r from-transparent via-red-900 to-transparent mx-auto"></div>
+                        <p class="font-serif text-stone-300 italic text-lg md:text-2xl leading-relaxed">"My tale is done, there runs a mouse; whosoever catches it, may make himself a big fur cap out of it."</p>
+                        <div class="flex justify-center gap-4 pt-4 opacity-50">
+                            <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                            <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                // QUESTIONS (1-5)
+                const q = questions[currentIndex - 1];
+                html = `
+                <div class="bg-black/60 backdrop-blur-md p-6 md:p-12 border border-stone-800 rounded-lg shadow-2xl relative overflow-hidden w-full max-w-4xl fade-enter fade-enter-active">
+                    <!-- Corners -->
+                    <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-red-900/50"></div>
+                    <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-red-900/50"></div>
+                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-900/50"></div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-900/50"></div>
+
+                    <div class="flex flex-col items-center text-center">
+                        <span class="inline-block text-red-800 font-cinzel text-xl tracking-widest border-b border-red-900/30 pb-2 mb-4">Question ${q.id}</span>
+                        <h2 class="font-cinzel text-2xl md:text-4xl text-stone-200 leading-tight mb-6">${q.title}</h2>
+                        <p class="font-serif text-xl md:text-2xl text-stone-300 leading-relaxed font-medium mb-8">${q.text}</p>
+
+                        <!-- Button -->
+                        <button onclick="toggleAnswer(this)" class="group flex items-center gap-2 px-6 py-2 rounded-full border border-stone-700 bg-stone-900/50 text-stone-400 font-serif tracking-widest text-sm uppercase transition-all duration-300 hover:bg-stone-800 hover:text-white hover:border-stone-500 animate-pulse mb-6">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span>Reveal Analysis</span>
+                        </button>
+
+                        <!-- Answer Box -->
+                        <div class="answer-container hidden w-full overflow-hidden transition-all duration-500">
+                            <div class="bg-red-950/20 border-l-2 border-red-900/60 p-6 rounded-r-lg text-left mt-2">
+                                <h3 class="text-red-500 font-cinzel text-sm mb-2 tracking-widest uppercase">Analysis</h3>
+                                <p class="font-serif text-lg md:text-xl text-stone-300 italic leading-relaxed">${q.answer}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            container.innerHTML = html;
+            updateControls();
         }
 
-        // Render slide based on current index
-        function renderSlide() {
-            const app = document.getElementById('app');
-            let content = '';
-            
-            // Update background for current slide
-            updateBackground();
+        // --- CONTROLS LOGIC ---
+        function updateControls() {
+            btnPrev.disabled = currentIndex === 0;
+            btnNext.disabled = currentIndex === 6;
+
+            let label = `${currentIndex} / ${questions.length}`;
+            let progress = (currentIndex / questions.length) * 100;
+            let skullClass = "";
 
             if (currentIndex === 0) {
-                // Title slide
-                content = `
-                    <div class="flex flex-col items-center justify-center min-h-[80vh]">
-                        <h1 class="font-nosifer text-6xl md:text-8xl text-center text-red-600 mb-8 drop-shadow-2xl">
-                            Hansel & Gretel
-                        </h1>
-                        <p class="font-cinzel text-2xl md:text-3xl text-stone-400 text-center">
-                            Academic Horror Analysis
-                        </p>
-                    </div>
-                `;
-            } else if (currentIndex >= 1 && currentIndex <= 5) {
-                // Question slides
-                const question = questions[currentIndex - 1];
-                content = `
-                    <div class="flex flex-col items-center justify-center min-h-[80vh]">
-                        <div class="relative w-full max-w-4xl backdrop-blur-lg bg-black/60 rounded-lg shadow-2xl p-8 md:p-12 border-2 border-red-900/50">
-                            <!-- Corner Accents -->
-                            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-red-700 rounded-tl-lg"></div>
-                            <div class="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-red-700 rounded-tr-lg"></div>
-                            <div class="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-red-700 rounded-bl-lg"></div>
-                            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-red-700 rounded-br-lg"></div>
-                            
-                            <!-- Inner corner decorations -->
-                            <div class="absolute top-2 left-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
-                            <div class="absolute top-2 right-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
-                            <div class="absolute bottom-2 left-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
-                            <div class="absolute bottom-2 right-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
-                            
-                            <h2 class="font-cinzel text-3xl md:text-4xl text-red-500 mb-6 text-center drop-shadow-lg">
-                                ${question.title}
-                            </h2>
-                            <p class="font-garamond text-xl md:text-2xl text-stone-200 mb-8 leading-relaxed">
-                                ${question.text}
-                            </p>
-                            <div id="answer-container" class="hidden">
-                                <div class="border-t-2 border-red-900/50 pt-6 mt-6">
-                                    <p class="font-garamond text-lg md:text-xl text-stone-300 leading-relaxed">
-                                        ${question.answer}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex justify-center mt-8">
-                                <button 
-                                    id="reveal-btn"
-                                    onclick="toggleAnswer()"
-                                    class="font-cinzel bg-red-900 hover:bg-red-800 text-stone-100 px-8 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-red-900/50 hover:shadow-xl hover:scale-105 border border-red-700">
-                                    Reveal Answer
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                label = "INTRO";
+                progress = 0;
+                skullClass = "text-red-700 animate-pulse";
             } else if (currentIndex === 6) {
-                // End slide - Burning oven effect
-                content = `
-                    <div class="flex flex-col items-center justify-center min-h-[80vh] relative">
-                        <div class="relative z-20">
-                            <h1 class="font-nosifer text-7xl md:text-9xl text-center text-orange-600 mb-8 drop-shadow-2xl" style="text-shadow: 0 0 30px #ff4500, 0 0 60px #ff6b35;">
-                                FINIS
-                            </h1>
-                            <p class="font-cinzel text-xl md:text-2xl text-orange-300 text-center italic drop-shadow-lg">
-                                "And they lived happily ever after..."<br>
-                                <span class="text-sm text-orange-400">or did they?</span>
-                            </p>
-                        </div>
-                    </div>
-                `;
-                
-                // Generate embers for burning oven effect
-                setTimeout(() => generateEmbers(), 100);
+                label = "FINIS";
+                progress = 100;
+                skullClass = "text-red-700 animate-pulse";
             }
 
-            // Add navigation buttons
-            content += `
-                <div class="flex justify-between items-center mt-12 gap-4">
-                    <button 
-                        onclick="previousSlide()"
-                        ${currentIndex === 0 ? 'disabled' : ''}
-                        class="font-cinzel bg-stone-800 hover:bg-stone-700 disabled:bg-stone-900 disabled:opacity-50 disabled:cursor-not-allowed text-stone-200 px-6 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                        ← Previous
-                    </button>
-                    <span class="font-garamond text-stone-400 text-lg">
-                        ${currentIndex} / 6
-                    </span>
-                    <button 
-                        onclick="nextSlide()"
-                        ${currentIndex === 6 ? 'disabled' : ''}
-                        class="font-cinzel bg-stone-800 hover:bg-stone-700 disabled:bg-stone-900 disabled:opacity-50 disabled:cursor-not-allowed text-stone-200 px-6 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                        Next →
-                    </button>
-                </div>
-            `;
-
-            app.innerHTML = content;
-        }
-
-        // Generate floating embers for burning oven effect
-        function generateEmbers() {
-            // Clear any existing embers first
-            clearEmbers();
+            slideLabel.innerText = label;
+            progressBar.style.width = `${progress}%`;
             
-            // Create 40 ember particles
-            for (let i = 0; i < 40; i++) {
-                const ember = document.createElement('div');
-                ember.className = 'ember';
-                
-                // Random horizontal position (0% to 100% of screen width)
-                const leftPosition = Math.random() * 100;
-                ember.style.left = `${leftPosition}%`;
-                
-                // Random animation duration (3s to 8s for varied speeds)
-                const duration = 3 + Math.random() * 5;
-                ember.style.animationDuration = `${duration}s`;
-                
-                // Random horizontal drift
-                const drift = (Math.random() - 0.5) * 100;
-                ember.style.setProperty('--drift', `${drift}px`);
-                
-                // Random delay for staggered appearance
-                const delay = Math.random() * 2;
-                ember.style.animationDelay = `${delay}s`;
-                
-                // Random size variation
-                const size = 6 + Math.random() * 6;
-                ember.style.width = `${size}px`;
-                ember.style.height = `${size}px`;
-                
-                document.body.appendChild(ember);
-                
-                // Remove ember after animation completes
-                setTimeout(() => {
-                    if (ember.parentNode) {
-                        ember.remove();
-                    }
-                }, (duration + delay) * 1000);
-            }
-            
-            // Continue generating embers every 2 seconds for continuous effect
-            emberInterval = setInterval(() => {
-                if (currentIndex === 6) {
-                    const ember = document.createElement('div');
-                    ember.className = 'ember';
-                    
-                    const leftPosition = Math.random() * 100;
-                    ember.style.left = `${leftPosition}%`;
-                    
-                    const duration = 3 + Math.random() * 5;
-                    ember.style.animationDuration = `${duration}s`;
-                    
-                    const drift = (Math.random() - 0.5) * 100;
-                    ember.style.setProperty('--drift', `${drift}px`);
-                    
-                    const size = 6 + Math.random() * 6;
-                    ember.style.width = `${size}px`;
-                    ember.style.height = `${size}px`;
-                    
-                    document.body.appendChild(ember);
-                    
-                    setTimeout(() => {
-                        if (ember.parentNode) {
-                            ember.remove();
-                        }
-                    }, duration * 1000);
-                } else {
-                    clearEmbers();
-                }
-            }, 200);
+            // Toggle red skulls
+            const isRed = currentIndex === 0 || currentIndex === 6;
+            skullLeft.setAttribute("class", isRed ? "text-red-700 animate-pulse transition-colors" : "transition-colors");
+            skullRight.setAttribute("class", isRed ? "text-red-700 animate-pulse transition-colors" : "transition-colors");
         }
 
-        // Clear all embers and stop generation
-        function clearEmbers() {
-            if (emberInterval) {
-                clearInterval(emberInterval);
-                emberInterval = null;
-            }
-            
-            // Remove all existing ember elements
-            const embers = document.querySelectorAll('.ember');
-            embers.forEach(ember => ember.remove());
-        }
-
-        // Toggle answer visibility
-        function toggleAnswer() {
-            const answerContainer = document.getElementById('answer-container');
-            const revealBtn = document.getElementById('reveal-btn');
-            
-            if (answerContainer.classList.contains('hidden')) {
-                answerContainer.classList.remove('hidden');
-                answerContainer.classList.add('animate-fade-in');
-                revealBtn.textContent = 'Hide Answer';
-                revealBtn.classList.remove('bg-red-700', 'hover:bg-red-600');
-                revealBtn.classList.add('bg-stone-700', 'hover:bg-stone-600');
-            } else {
-                answerContainer.classList.add('hidden');
-                revealBtn.textContent = 'Reveal Answer';
-                revealBtn.classList.remove('bg-stone-700', 'hover:bg-stone-600');
-                revealBtn.classList.add('bg-red-700', 'hover:bg-red-600');
-            }
-        }
-
-        // Navigation functions
-        function previousSlide() {
-            if (currentIndex > 0) {
-                clearEmbers(); // Clear embers when leaving slide 6
-                currentIndex--;
-                renderSlide();
-            }
-        }
-
-        function nextSlide() {
+        btnNext.addEventListener('click', () => {
             if (currentIndex < 6) {
-                clearEmbers(); // Clear embers when leaving any slide
                 currentIndex++;
-                renderSlide();
+                render();
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                render();
+            }
+        });
+
+        // --- REVEAL LOGIC ---
+        window.toggleAnswer = function(btn) {
+            const container = btn.parentElement.querySelector('.answer-container');
+            const isHidden = container.classList.contains('hidden');
+            
+            if (isHidden) {
+                container.classList.remove('hidden');
+                btn.classList.remove('animate-pulse');
+                btn.classList.add('bg-red-900/20', 'text-red-400', 'border-red-900/50');
+                btn.querySelector('span').innerText = "Hide Analysis";
+                btn.querySelector('svg').innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.09"/><line x1="2" x2="22" y1="2" y2="22"/>';
+            } else {
+                container.classList.add('hidden');
+                btn.classList.add('animate-pulse');
+                btn.classList.remove('bg-red-900/20', 'text-red-400', 'border-red-900/50');
+                btn.querySelector('span').innerText = "Reveal Analysis";
+                btn.querySelector('svg').innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        };
+
+        // --- EMBERS LOGIC ---
+        function startEmbers() {
+            for (let i = 0; i < 40; i++) {
+                createEmber(i);
             }
         }
 
-        // Initialize the presentation
-        renderSlide();
-    </script>
+        function createEmber(i) {
+            const ember = document.createElement('div');
+            ember.classList.add('ember');
+            
+            // Random properties
+            const left = Math.random() * 100;
+            const size = 4 + Math.random() * 6;
+            const duration = 2 + Math.random() * 4;
+            const delay = Math.random() * 2;
+            const drift = Math.random() > 0.5 ? 50 : -50;
 
+            ember.style.left = `${left}%`;
+            ember.style.width = `${size}px`;
+            ember.style.height = `${size}px`;
+            ember.style.animationDuration = `${duration}s`;
+            ember.style.animationDelay = `${delay}s`;
+            ember.style.setProperty('--drift', `${drift}px`);
+
+            embersContainer.appendChild(ember);
+        }
+
+        // --- AUDIO FUNCTIONS ---
+        // Initialize audio system with user interaction
+        function initAudio() {
+            // Set initial volumes to 0
+            ambientAudio.volume = 0;
+            heartbeatAudio.volume = 0;
+            
+            // One-time click listener to start audio (browser autoplay policy)
+            const startAudio = () => {
+                if (!audioInitialized) {
+                    audioInitialized = true;
+                    
+                    // Start ambient audio with fade in
+                    ambientAudio.play().then(() => {
+                        fadeInAudio(ambientAudio, 0.3, 2000); // Fade to 30% volume over 2 seconds
+                    }).catch(err => {
+                        console.log('Audio autoplay prevented:', err);
+                    });
+                    
+                    // Remove the listener after first interaction
+                    document.body.removeEventListener('click', startAudio);
+                }
+            };
+            
+            // Add listener to body for first click
+            document.body.addEventListener('click', startAudio);
+        }
+
+        // Fade in audio
+        function fadeInAudio(audioElement, targetVolume, duration) {
+            const startVolume = audioElement.volume;
+            const volumeStep = (targetVolume - startVolume) / (duration / 50);
+            
+            const fadeInterval = setInterval(() => {
+                if (audioElement.volume < targetVolume - 0.01) {
+                    audioElement.volume = Math.min(audioElement.volume + volumeStep, targetVolume);
+                } else {
+                    audioElement.volume = targetVolume;
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
+        }
+
+        // Fade out audio
+        function fadeOutAudio(audioElement, duration) {
+            const startVolume = audioElement.volume;
+            const volumeStep = startVolume / (duration / 50);
+            
+            const fadeInterval = setInterval(() => {
+                if (audioElement.volume > 0.01) {
+                    audioElement.volume = Math.max(audioElement.volume - volumeStep, 0);
+                } else {
+                    audioElement.volume = 0;
+                    audioElement.pause();
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
+        }
+
+        // Control heartbeat audio based on slide
+        function updateAudio() {
+            if (currentIndex === 6) {
+                // Ending slide - play heartbeat
+                if (audioInitialized && heartbeatAudio.paused) {
+                    heartbeatAudio.play().then(() => {
+                        fadeInAudio(heartbeatAudio, 0.4, 1500); // Fade to 40% volume over 1.5 seconds
+                    }).catch(err => {
+                        console.log('Heartbeat audio error:', err);
+                    });
+                }
+            } else {
+                // Other slides - stop heartbeat
+                if (!heartbeatAudio.paused) {
+                    fadeOutAudio(heartbeatAudio, 1000); // Fade out over 1 second
+                }
+            }
+        }
+
+        // --- INIT ---
+        bgLayer.style.backgroundImage = bgForest;
+        initAudio();
+        render();
+
+    </script>
 </body>
 </html>
