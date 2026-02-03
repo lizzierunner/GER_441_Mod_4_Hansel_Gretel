@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Presentation App</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nosifer&family=Cinzel+Decorative:wght@400;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'EB Garamond', serif;
+        }
+        .font-nosifer {
+            font-family: 'Nosifer', cursive;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel Decorative', cursive;
+        }
+        .font-garamond {
+            font-family: 'EB Garamond', serif;
+        }
+        
+        /* Floating embers animation */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(var(--drift, 0px));
+                opacity: 0;
+            }
+        }
+        
+        .ember {
+            position: fixed;
+            bottom: 0;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ff6b35, #ff4500);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px #ff4500, 0 0 20px #ff6b35;
+            animation: floatUp linear forwards;
+            z-index: 10;
+        }
+        
+        /* Background transitions */
+        #background {
+            transition: opacity 1s ease-in-out, background-image 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        #background::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="bg-black text-stone-200 min-h-screen">
+    
+    <!-- Background Layer -->
+    <div id="background" class="fixed inset-0 z-0"></div>
+    
+    <!-- Main App Container -->
+    <div id="app" class="container mx-auto px-4 py-8 max-w-7xl relative z-10">
+        <!-- Your content goes here -->
+    </div>
+
+    <script>
+        // State management
+        let currentIndex = 0;
+        let emberInterval = null;
+
+        // Questions array with academic horror themes
+        const questions = [
+            {
+                id: 1,
+                title: "Moral Pedagogy",
+                text: "How does the tale of Hansel and Gretel function as a cautionary narrative about obedience and the consequences of childhood transgression?",
+                answer: "The tale operates within a framework of moral pedagogy typical of 19th-century German folklore, where children's disobedience—eating from the witch's house despite obvious danger—serves as a literalization of maternal warnings. The gingerbread house functions as a metaphor for forbidden temptation, while the witch embodies the punitive consequences of succumbing to desire. However, the tale complicates simple moral readings through its portrayal of parental abandonment, suggesting that children's survival requires transgressive acts. The siblings' ultimate triumph through cunning and violence (pushing the witch into the oven) reflects a darker pedagogical message: that traditional morality must be suspended in extremis, and that children must learn to become perpetrators of violence to survive adult treachery."
+            },
+            {
+                id: 2,
+                title: "Maternal Monstrosity",
+                text: "Analyze the symbolic relationship between the stepmother and the witch as doubled figures of maternal threat in the narrative structure.",
+                answer: "The stepmother and witch function as narrative doubles, representing fragmented aspects of the threatening maternal figure. Both seek to eliminate the children—the stepmother through abandonment, the witch through consumption. This doubling reflects the tale's anxiety about maternal nurture perverted into its opposite: the mother who feeds becomes the mother who starves, then transforms into the witch who literally consumes children. The witch's death coincides narratively with the stepmother's offstage demise, suggesting they are psychologically identical. The gingerbread house itself operates as a false maternal object, promising sustenance while concealing cannibalistic intent. This splitting of the maternal figure into 'good' (absent biological mother) and 'bad' (stepmother/witch) reflects primitive psychological defenses against ambivalence, allowing the tale to express both desire for and terror of maternal power."
+            },
+            {
+                id: 3,
+                title: "Spatial Gothic",
+                text: "How does the forest function as a liminal Gothic space that transforms the children's relationship to civilization and domesticity?",
+                answer: "The forest operates as a classic Gothic heterotopia—a space outside normal social order where conventional rules are suspended. The progressive journey deeper into the forest marks a movement away from failed patriarchal protection (the father) toward a realm of feminine excess and horror (the witch). Unlike traditional Gothic castles, the forest's threat lies in its apparent naturalness, which conceals supernatural danger. The trail of breadcrumbs represents a failed attempt to maintain connection to civilization through rational planning, but nature (birds) conspires against this logic. The gingerbread house epitomizes the forest's deceptive quality—domesticity rendered uncanny through its edible materiality. The children's return journey, weighted with jewels, transforms the forest from a space of abandonment to one of acquisition, suggesting that confrontation with Gothic horror yields material benefit, but only through violence and cunning that permanently alters the children's innocence."
+            },
+            {
+                id: 4,
+                title: "Cannibalistic Economics",
+                text: "Examine the tale's treatment of consumption, scarcity, and the body as economic resource during periods of famine.",
+                answer: "The tale explicitly frames its horror within economic terms: famine drives the initial abandonment, positioning children as consumable resources to be eliminated when food is scarce. This establishes a cannibalistic economy where bodies become commodities. The witch's fattening of Hansel inverts normal domestic economy—she expends resources (food) to create a consumable product (child's flesh), mirroring livestock husbandry. The siblings' theft of the witch's jewels represents capital accumulation through violence, transforming them from resources to be consumed into economic actors. The tale thus expresses anxiety about capitalist exchange during scarcity, where human life becomes calculable against material resources. The father's welcome of the children's return, notably after the stepmother's death and arrival of wealth, suggests that familial bonds are themselves contingent on economic utility, rendering all relationships potentially cannibalistic."
+            },
+            {
+                id: 5,
+                title: "The Abject and Transgression",
+                text: "Using Julia Kristeva's theory of abjection, analyze how the tale deploys bodily boundaries, consumption, and the horror of being eaten.",
+                answer: "The tale centers on violations of bodily integrity through consumption, aligning with Kristeva's concept of the abject—that which disturbs identity and order by threatening the boundary between self and other. The witch's cannibalism represents the ultimate abjection: the body reduced to meat, self consumed by other. The gingerbread house materializes this horror by making architecture edible, collapsing boundaries between inside/outside, consumer/consumed. The children's eating of the house initiates their vulnerability to being eaten, establishing a terrifying reciprocity. Gretel's act of pushing the witch into the oven reverses the threat, forcing the consumer into the position of the consumed, but this requires Gretel herself to occupy the position of the abject monster. The tale's resolution—return to the father with wealth—attempts to restore order, but the children's necessary embrace of violence and cunning suggests permanent contamination by the abject, an irreversible loss of innocence through proximity to the monstrous maternal body."
+            }
+        ];
+
+        // Update background based on current slide
+        function updateBackground() {
+            const background = document.getElementById('background');
+            
+            if (currentIndex === 6) {
+                // Ending slide - scary closing book
+                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=1920&q=80')";
+            } else {
+                // All other slides - dark forest
+                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80')";
+            }
+        }
+
+        // Render slide based on current index
+        function renderSlide() {
+            const app = document.getElementById('app');
+            let content = '';
+            
+            // Update background for current slide
+            updateBackground();
+
+            if (currentIndex === 0) {
+                // Title slide
+                content = `
+                    <div class="flex flex-col items-center justify-center min-h-[80vh]">
+                        <h1 class="font-nosifer text-6xl md:text-8xl text-center text-red-600 mb-8 drop-shadow-2xl">
+                            Hansel & Gretel
+                        </h1>
+                        <p class="font-cinzel text-2xl md:text-3xl text-stone-400 text-center">
+                            Academic Horror Analysis
+                        </p>
+                    </div>
+                `;
+            } else if (currentIndex >= 1 && currentIndex <= 5) {
+                // Question slides
+                const question = questions[currentIndex - 1];
+                content = `
+                    <div class="flex flex-col items-center justify-center min-h-[80vh]">
+                        <div class="relative w-full max-w-4xl backdrop-blur-lg bg-black/60 rounded-lg shadow-2xl p-8 md:p-12 border-2 border-red-900/50">
+                            <!-- Corner Accents -->
+                            <div class="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-red-700 rounded-tl-lg"></div>
+                            <div class="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-red-700 rounded-tr-lg"></div>
+                            <div class="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-red-700 rounded-bl-lg"></div>
+                            <div class="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-red-700 rounded-br-lg"></div>
+                            
+                            <!-- Inner corner decorations -->
+                            <div class="absolute top-2 left-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
+                            <div class="absolute top-2 right-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
+                            <div class="absolute bottom-2 left-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
+                            <div class="absolute bottom-2 right-2 w-3 h-3 bg-red-600 rounded-full opacity-70"></div>
+                            
+                            <h2 class="font-cinzel text-3xl md:text-4xl text-red-500 mb-6 text-center drop-shadow-lg">
+                                ${question.title}
+                            </h2>
+                            <p class="font-garamond text-xl md:text-2xl text-stone-200 mb-8 leading-relaxed">
+                                ${question.text}
+                            </p>
+                            <div id="answer-container" class="hidden">
+                                <div class="border-t-2 border-red-900/50 pt-6 mt-6">
+                                    <p class="font-garamond text-lg md:text-xl text-stone-300 leading-relaxed">
+                                        ${question.answer}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center mt-8">
+                                <button 
+                                    id="reveal-btn"
+                                    onclick="toggleAnswer()"
+                                    class="font-cinzel bg-red-900 hover:bg-red-800 text-stone-100 px-8 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-red-900/50 hover:shadow-xl hover:scale-105 border border-red-700">
+                                    Reveal Answer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentIndex === 6) {
+                // End slide - Burning oven effect
+                content = `
+                    <div class="flex flex-col items-center justify-center min-h-[80vh] relative">
+                        <div class="relative z-20">
+                            <h1 class="font-nosifer text-7xl md:text-9xl text-center text-orange-600 mb-8 drop-shadow-2xl" style="text-shadow: 0 0 30px #ff4500, 0 0 60px #ff6b35;">
+                                FINIS
+                            </h1>
+                            <p class="font-cinzel text-xl md:text-2xl text-orange-300 text-center italic drop-shadow-lg">
+                                "And they lived happily ever after..."<br>
+                                <span class="text-sm text-orange-400">or did they?</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                // Generate embers for burning oven effect
+                setTimeout(() => generateEmbers(), 100);
+            }
+
+            // Add navigation buttons
+            content += `
+                <div class="flex justify-between items-center mt-12 gap-4">
+                    <button 
+                        onclick="previousSlide()"
+                        ${currentIndex === 0 ? 'disabled' : ''}
+                        class="font-cinzel bg-stone-800 hover:bg-stone-700 disabled:bg-stone-900 disabled:opacity-50 disabled:cursor-not-allowed text-stone-200 px-6 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                        ← Previous
+                    </button>
+                    <span class="font-garamond text-stone-400 text-lg">
+                        ${currentIndex} / 6
+                    </span>
+                    <button 
+                        onclick="nextSlide()"
+                        ${currentIndex === 6 ? 'disabled' : ''}
+                        class="font-cinzel bg-stone-800 hover:bg-stone-700 disabled:bg-stone-900 disabled:opacity-50 disabled:cursor-not-allowed text-stone-200 px-6 py-3 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                        Next →
+                    </button>
+                </div>
+            `;
+
+            app.innerHTML = content;
+        }
+
+        // Generate floating embers for burning oven effect
+        function generateEmbers() {
+            // Clear any existing embers first
+            clearEmbers();
+            
+            // Create 40 ember particles
+            for (let i = 0; i < 40; i++) {
+                const ember = document.createElement('div');
+                ember.className = 'ember';
+                
+                // Random horizontal position (0% to 100% of screen width)
+                const leftPosition = Math.random() * 100;
+                ember.style.left = `${leftPosition}%`;
+                
+                // Random animation duration (3s to 8s for varied speeds)
+                const duration = 3 + Math.random() * 5;
+                ember.style.animationDuration = `${duration}s`;
+                
+                // Random horizontal drift
+                const drift = (Math.random() - 0.5) * 100;
+                ember.style.setProperty('--drift', `${drift}px`);
+                
+                // Random delay for staggered appearance
+                const delay = Math.random() * 2;
+                ember.style.animationDelay = `${delay}s`;
+                
+                // Random size variation
+                const size = 6 + Math.random() * 6;
+                ember.style.width = `${size}px`;
+                ember.style.height = `${size}px`;
+                
+                document.body.appendChild(ember);
+                
+                // Remove ember after animation completes
+                setTimeout(() => {
+                    if (ember.parentNode) {
+                        ember.remove();
+                    }
+                }, (duration + delay) * 1000);
+            }
+            
+            // Continue generating embers every 2 seconds for continuous effect
+            emberInterval = setInterval(() => {
+                if (currentIndex === 6) {
+                    const ember = document.createElement('div');
+                    ember.className = 'ember';
+                    
+                    const leftPosition = Math.random() * 100;
+                    ember.style.left = `${leftPosition}%`;
+                    
+                    const duration = 3 + Math.random() * 5;
+                    ember.style.animationDuration = `${duration}s`;
+                    
+                    const drift = (Math.random() - 0.5) * 100;
+                    ember.style.setProperty('--drift', `${drift}px`);
+                    
+                    const size = 6 + Math.random() * 6;
+                    ember.style.width = `${size}px`;
+                    ember.style.height = `${size}px`;
+                    
+                    document.body.appendChild(ember);
+                    
+                    setTimeout(() => {
+                        if (ember.parentNode) {
+                            ember.remove();
+                        }
+                    }, duration * 1000);
+                } else {
+                    clearEmbers();
+                }
+            }, 200);
+        }
+
+        // Clear all embers and stop generation
+        function clearEmbers() {
+            if (emberInterval) {
+                clearInterval(emberInterval);
+                emberInterval = null;
+            }
+            
+            // Remove all existing ember elements
+            const embers = document.querySelectorAll('.ember');
+            embers.forEach(ember => ember.remove());
+        }
+
+        // Toggle answer visibility
+        function toggleAnswer() {
+            const answerContainer = document.getElementById('answer-container');
+            const revealBtn = document.getElementById('reveal-btn');
+            
+            if (answerContainer.classList.contains('hidden')) {
+                answerContainer.classList.remove('hidden');
+                answerContainer.classList.add('animate-fade-in');
+                revealBtn.textContent = 'Hide Answer';
+                revealBtn.classList.remove('bg-red-700', 'hover:bg-red-600');
+                revealBtn.classList.add('bg-stone-700', 'hover:bg-stone-600');
+            } else {
+                answerContainer.classList.add('hidden');
+                revealBtn.textContent = 'Reveal Answer';
+                revealBtn.classList.remove('bg-stone-700', 'hover:bg-stone-600');
+                revealBtn.classList.add('bg-red-700', 'hover:bg-red-600');
+            }
+        }
+
+        // Navigation functions
+        function previousSlide() {
+            if (currentIndex > 0) {
+                clearEmbers(); // Clear embers when leaving slide 6
+                currentIndex--;
+                renderSlide();
+            }
+        }
+
+        function nextSlide() {
+            if (currentIndex < 6) {
+                clearEmbers(); // Clear embers when leaving any slide
+                currentIndex++;
+                renderSlide();
+            }
+        }
+
+        // Initialize the presentation
+        renderSlide();
+    </script>
+
+</body>
+</html>
