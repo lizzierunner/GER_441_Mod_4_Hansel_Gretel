@@ -70,7 +70,18 @@
     <!-- 4. Embers (Ending Only) -->
     <div id="embers-container" class="absolute inset-0 z-0 overflow-hidden pointer-events-none"></div>
 
-    <!-- 5. Main Content -->
+    <!-- 5. Audio Elements -->
+    <audio id="ambient-audio" loop>
+        <!-- Creepy music box horror lullaby -->
+        <source src="lilliben-creeping-music-box-horror-lullaby-365186.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="heartbeat-audio" loop>
+        <!-- Low thrumming heartbeat sound -->
+        <source src="https://cdn.pixabay.com/audio/2022/03/22/audio_f6a737007d.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 6. Main Content -->
     <main class="relative z-20 h-full flex flex-col items-center justify-between p-6 md:p-12 max-w-6xl mx-auto">
         
         <!-- Slide Container -->
@@ -143,6 +154,7 @@
         let currentIndex = 0; // 0=Intro, 1-5=Questions, 6=Ending
         const bgForest = "url('https://images.unsplash.com/photo-1770105328610-e138ba4597cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')";
         const bgEnding = "url('https://images.unsplash.com/photo-1677104165819-2e5ab9a0821f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')";
+        let audioInitialized = false;
 
         // --- DOM ELEMENTS ---
         const container = document.getElementById('slide-container');
@@ -154,6 +166,8 @@
         const progressBar = document.getElementById('progress-bar');
         const skullLeft = document.getElementById('skull-left');
         const skullRight = document.getElementById('skull-right');
+        const ambientAudio = document.getElementById('ambient-audio');
+        const heartbeatAudio = document.getElementById('heartbeat-audio');
 
         // --- RENDER FUNCTION ---
         function render() {
@@ -167,7 +181,10 @@
                 embersContainer.innerHTML = '';
             }
 
-            // 3. Generate HTML
+            // 3. Update Audio
+            updateAudio();
+
+            // 4. Generate HTML
             let html = '';
             
             if (currentIndex === 0) {
@@ -177,7 +194,8 @@
                     <h1 class="font-nosifer text-5xl md:text-8xl text-red-700 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] tracking-wider mb-4">HANSEL<br/>&<br/>GRETEL</h1>
                     <div class="h-1 bg-gradient-to-r from-transparent via-red-900 to-transparent w-full max-w-md mx-auto mb-8 transition-all duration-1000" style="width: 100%"></div>
                     <h2 class="font-cinzel text-xl md:text-3xl text-stone-300 tracking-widest mb-8">Video Analysis Questions (Module 4)</h2>
-                    <p class="font-serif text-stone-500 italic max-w-lg mx-auto">"They saw that the little house was built entirely of bread and roofed with cakes..."</p>
+                    <p class="font-serif text-stone-500 italic max-w-lg mx-auto mb-4">"They saw that the little house was built entirely of bread and roofed with cakes..."</p>
+                    <p class="font-serif text-stone-600 text-sm mt-6">🔊 Click anywhere to enable atmospheric audio</p>
                 </div>`;
             } else if (currentIndex === 6) {
                 // ENDING
@@ -336,8 +354,87 @@
             embersContainer.appendChild(ember);
         }
 
+        // --- AUDIO FUNCTIONS ---
+        // Initialize audio system with user interaction
+        function initAudio() {
+            // Set initial volumes to 0
+            ambientAudio.volume = 0;
+            heartbeatAudio.volume = 0;
+            
+            // One-time click listener to start audio (browser autoplay policy)
+            const startAudio = () => {
+                if (!audioInitialized) {
+                    audioInitialized = true;
+                    
+                    // Start ambient music box with fade in
+                    ambientAudio.play().then(() => {
+                        fadeInAudio(ambientAudio, 0.25, 2000); // Fade to 25% volume over 2 seconds
+                    }).catch(err => {
+                        console.log('Audio autoplay prevented:', err);
+                    });
+                    
+                    // Remove the listener after first interaction
+                    document.body.removeEventListener('click', startAudio);
+                }
+            };
+            
+            // Add listener to body for first click
+            document.body.addEventListener('click', startAudio);
+        }
+
+        // Fade in audio
+        function fadeInAudio(audioElement, targetVolume, duration) {
+            const startVolume = audioElement.volume;
+            const volumeStep = (targetVolume - startVolume) / (duration / 50);
+            
+            const fadeInterval = setInterval(() => {
+                if (audioElement.volume < targetVolume - 0.01) {
+                    audioElement.volume = Math.min(audioElement.volume + volumeStep, targetVolume);
+                } else {
+                    audioElement.volume = targetVolume;
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
+        }
+
+        // Fade out audio
+        function fadeOutAudio(audioElement, duration) {
+            const startVolume = audioElement.volume;
+            const volumeStep = startVolume / (duration / 50);
+            
+            const fadeInterval = setInterval(() => {
+                if (audioElement.volume > 0.01) {
+                    audioElement.volume = Math.max(audioElement.volume - volumeStep, 0);
+                } else {
+                    audioElement.volume = 0;
+                    audioElement.pause();
+                    clearInterval(fadeInterval);
+                }
+            }, 50);
+        }
+
+        // Control heartbeat audio based on slide
+        function updateAudio() {
+            if (currentIndex === 6) {
+                // Ending slide - play heartbeat
+                if (audioInitialized && heartbeatAudio.paused) {
+                    heartbeatAudio.play().then(() => {
+                        fadeInAudio(heartbeatAudio, 0.35, 1500); // Fade to 35% volume over 1.5 seconds
+                    }).catch(err => {
+                        console.log('Heartbeat audio error:', err);
+                    });
+                }
+            } else {
+                // Other slides - stop heartbeat
+                if (!heartbeatAudio.paused) {
+                    fadeOutAudio(heartbeatAudio, 1000); // Fade out over 1 second
+                }
+            }
+        }
+
         // --- INIT ---
         bgLayer.style.backgroundImage = bgForest;
+        initAudio();
         render();
 
     </script>
