@@ -53,6 +53,25 @@
             50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
         }
         .animate-pulse-red { animation: pulse-red 4s infinite ease-in-out; }
+        
+        /* Mobile optimization */
+        @media (max-width: 640px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            #slide-container {
+                padding: 1rem 0;
+            }
+        }
+        
+        /* Ensure text is readable on small screens */
+        @media (max-width: 480px) {
+            .font-nosifer {
+                line-height: 1.1;
+            }
+        }
     </style>
 </head>
 <body class="bg-black text-stone-200 overflow-hidden h-screen w-screen relative selection:bg-red-900 selection:text-white">
@@ -190,37 +209,37 @@
             if (currentIndex === 0) {
                 // INTRO
                 html = `
-                <div class="text-center fade-enter fade-enter-active">
-                    <h1 class="font-nosifer text-5xl md:text-8xl text-red-700 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] tracking-wider mb-4">HANSEL<br/>&<br/>GRETEL</h1>
+                <div class="text-center fade-enter fade-enter-active px-4">
+                    <h1 class="font-nosifer text-4xl sm:text-5xl md:text-8xl text-red-700 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] tracking-wider mb-4">HANSEL<br/>&<br/>GRETEL</h1>
                     <div class="h-1 bg-gradient-to-r from-transparent via-red-900 to-transparent w-full max-w-md mx-auto mb-8 transition-all duration-1000" style="width: 100%"></div>
-                    <h2 class="font-cinzel text-xl md:text-3xl text-stone-300 tracking-widest mb-8">Video Analysis Questions (Module 4)</h2>
-                    <p class="font-serif text-stone-500 italic max-w-lg mx-auto mb-4">"They saw that the little house was built entirely of bread and roofed with cakes..."</p>
-                    <p class="font-serif text-stone-600 text-sm mt-6">🔊 Click anywhere to enable atmospheric audio</p>
+                    <h2 class="font-cinzel text-lg sm:text-xl md:text-3xl text-stone-300 tracking-widest mb-8">Video Analysis Questions (Module 4)</h2>
+                    <p class="font-serif text-base sm:text-lg text-stone-500 italic max-w-lg mx-auto mb-4 px-4">"They saw that the little house was built entirely of bread and roofed with cakes..."</p>
+                    <p class="font-serif text-stone-600 text-xs sm:text-sm mt-6">🔊 Click anywhere to enable atmospheric audio</p>
                 </div>`;
             } else if (currentIndex === 6) {
                 // ENDING
                 html = `
-                <div class="relative w-full flex flex-col items-center justify-center text-center fade-enter fade-enter-active">
+                <div class="relative w-full flex flex-col items-center justify-center text-center fade-enter fade-enter-active px-4">
                     <!-- Red Glow Pulse -->
-                    <div class="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-red-900/30 blur-[100px] rounded-full pointer-events-none animate-pulse-red" style="z-index: -1;"></div>
+                    <div class="absolute top-1/2 left-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-red-900/30 blur-[100px] rounded-full pointer-events-none animate-pulse-red" style="z-index: -1;"></div>
 
                     <!-- Main Text -->
-                    <div class="relative mb-12">
-                        <h1 class="relative z-10 font-nosifer text-7xl md:text-9xl text-transparent bg-clip-text bg-gradient-to-b from-stone-200 to-stone-500 drop-shadow-[0_0_25px_rgba(185,28,28,0.8)] tracking-widest leading-none animate-text-glitch">
+                    <div class="relative mb-8 sm:mb-12">
+                        <h1 class="relative z-10 font-nosifer text-5xl sm:text-7xl md:text-9xl text-transparent bg-clip-text bg-gradient-to-b from-stone-200 to-stone-500 drop-shadow-[0_0_25px_rgba(185,28,28,0.8)] tracking-widest leading-none animate-text-glitch">
                             FINIS
                         </h1>
                         <!-- Bleeding Effect -->
-                        <h1 class="absolute inset-0 font-nosifer text-7xl md:text-9xl text-red-900/40 blur-sm pointer-events-none tracking-widest leading-none animate-bleed" aria-hidden="true">
+                        <h1 class="absolute inset-0 font-nosifer text-5xl sm:text-7xl md:text-9xl text-red-900/40 blur-sm pointer-events-none tracking-widest leading-none animate-bleed" aria-hidden="true">
                             FINIS
                         </h1>
                     </div>
 
                     <!-- Quote Box -->
-                    <div class="bg-black/40 p-8 rounded-xl backdrop-blur-sm border border-red-900/20 max-w-2xl mx-auto space-y-6">
-                        <p class="font-cinzel text-xl md:text-3xl text-red-500 tracking-widest uppercase animate-pulse">The End... Or Is It?</p>
-                        <div class="h-px w-32 bg-gradient-to-r from-transparent via-red-900 to-transparent mx-auto"></div>
-                        <p class="font-serif text-stone-300 italic text-lg md:text-2xl leading-relaxed">"My tale is done, there runs a mouse; whosoever catches it, may make himself a big fur cap out of it."</p>
-                        <div class="flex justify-center gap-4 pt-4 opacity-50">
+                    <div class="bg-black/40 p-4 sm:p-6 md:p-8 rounded-xl backdrop-blur-sm border border-red-900/20 max-w-2xl mx-auto space-y-4 sm:space-y-6">
+                        <p class="font-cinzel text-lg sm:text-xl md:text-3xl text-red-500 tracking-widest uppercase animate-pulse">The End... Or Is It?</p>
+                        <div class="h-px w-24 sm:w-32 bg-gradient-to-r from-transparent via-red-900 to-transparent mx-auto"></div>
+                        <p class="font-serif text-stone-300 italic text-base sm:text-lg md:text-2xl leading-relaxed">"My tale is done, there runs a mouse; whosoever catches it, may make himself a big fur cap out of it."</p>
+                        <div class="flex justify-center gap-3 sm:gap-4 pt-2 sm:pt-4 opacity-50">
                             <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0s"></div>
                             <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                             <div class="w-2 h-2 bg-red-900 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
@@ -238,22 +257,22 @@
                     <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-red-900/50"></div>
                     <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-red-900/50"></div>
 
-                    <div class="flex flex-col items-center text-center">
-                        <span class="inline-block text-red-800 font-cinzel text-xl tracking-widest border-b border-red-900/30 pb-2 mb-4">Question ${q.id}</span>
-                        <h2 class="font-cinzel text-2xl md:text-4xl text-stone-200 leading-tight mb-6">${q.title}</h2>
-                        <p class="font-serif text-xl md:text-2xl text-stone-300 leading-relaxed font-medium mb-8">${q.text}</p>
+                    <div class="flex flex-col items-center text-center px-2 sm:px-4">
+                        <span class="inline-block text-red-800 font-cinzel text-base sm:text-lg md:text-xl tracking-widest border-b border-red-900/30 pb-2 mb-3 sm:mb-4">Question ${q.id}</span>
+                        <h2 class="font-cinzel text-xl sm:text-2xl md:text-4xl text-stone-200 leading-tight mb-4 sm:mb-6">${q.title}</h2>
+                        <p class="font-serif text-base sm:text-lg md:text-2xl text-stone-300 leading-relaxed font-medium mb-6 sm:mb-8">${q.text}</p>
 
                         <!-- Button -->
-                        <button onclick="toggleAnswer(this)" class="group flex items-center gap-2 px-6 py-2 rounded-full border border-stone-700 bg-stone-900/50 text-stone-400 font-serif tracking-widest text-sm uppercase transition-all duration-300 hover:bg-stone-800 hover:text-white hover:border-stone-500 animate-pulse mb-6">
+                        <button onclick="toggleAnswer(this)" class="group flex items-center gap-2 px-4 sm:px-6 py-2 rounded-full border border-stone-700 bg-stone-900/50 text-stone-400 font-serif tracking-widest text-xs sm:text-sm uppercase transition-all duration-300 hover:bg-stone-800 hover:text-white hover:border-stone-500 animate-pulse mb-4 sm:mb-6">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                             <span>Reveal Analysis</span>
                         </button>
 
                         <!-- Answer Box -->
                         <div class="answer-container hidden w-full overflow-hidden transition-all duration-500">
-                            <div class="bg-red-950/20 border-l-2 border-red-900/60 p-6 rounded-r-lg text-left mt-2">
-                                <h3 class="text-red-500 font-cinzel text-sm mb-2 tracking-widest uppercase">Analysis</h3>
-                                <p class="font-serif text-lg md:text-xl text-stone-300 italic leading-relaxed">${q.answer}</p>
+                            <div class="bg-red-950/20 border-l-2 border-red-900/60 p-4 sm:p-6 rounded-r-lg text-left mt-2">
+                                <h3 class="text-red-500 font-cinzel text-xs sm:text-sm mb-2 tracking-widest uppercase">Analysis</h3>
+                                <p class="font-serif text-sm sm:text-base md:text-xl text-stone-300 italic leading-relaxed">${q.answer}</p>
                             </div>
                         </div>
                     </div>
