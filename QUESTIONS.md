@@ -1,24 +1,24 @@
 # Hansel and Gretel: Module 4 Discussion Questions
 
 ## Question 1: Moral Pedagogy
-So how does Hansel and Gretel actually use all that horror and violence to teach us something, instead of just being scary for the sake of it?
+How does Hansel and Gretel use horror and violence as a way to teach a moral lesson rather than simply to scare the audience?
 
 ---
 
 ## Question 2: Social Fears
-What if the witch isn't just some fantasy monster? Like, what real-world anxieties about hunger, poverty, and abandonment might she actually represent?
+In what ways can the witch in Hansel and Gretel be interpreted as a reflection of real social fears, such as hunger, poverty, and child abandonment, rather than only as a fantasy monster?
 
 ---
 
 ## Question 3: Family Dynamics
-How does Hansel and Gretel totally flip the script on that perfect family image we see in Disney movies and other sanitized fairy tale versions?
+How does the story of Hansel and Gretel challenge the idealized image of the family that is often presented in modern fairy-tale adaptations, such as Disney films?
 
 ---
 
 ## Question 4: Genre Connections
-Why do people say fairy tales and horror are basically cousins? How does Hansel and Gretel prove they're way more connected than we think?
+How does Hansel and Gretel support the idea that fairy tales and horror are closely connected rather than separate genres?
 
 ---
 
 ## Question 5: Gender Horror
-When modern versions focus more on Gretel's experience, what does that say about gender horror and what we're worried about in today's culture?
+How might modern retellings of Hansel and Gretel, especially versions that focus more on Gretel's experience, reflect the idea of gender horror and changing cultural concerns?
